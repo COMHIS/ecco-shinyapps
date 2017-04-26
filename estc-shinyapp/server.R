@@ -17,7 +17,7 @@ library(RCurl)
 library(jsonlite)
 library(stringi)
 load_all()
-source("./get_ids_with_filter.R")
+# source("./get_ids_with_filter.R")
 
 nchar <- 40
 ntop <- 20
