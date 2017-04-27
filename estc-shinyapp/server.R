@@ -1,13 +1,14 @@
 
 library(shiny)
 library(devtools)
+options(shiny.testmode = TRUE)
+
 load_all("../bibliographica")
 load_all("../estc")
 library(magrittr)
 library(reshape2)
 library(gridExtra)
 library(knitr)
-library(ggmap)
 library(dplyr)
 library(tidyr)
 library(ggplot2)
@@ -17,13 +18,14 @@ library(RCurl)
 library(jsonlite)
 library(stringi)
 load_all()
-# source("./get_ids_with_filter.R")
 
 nchar <- 40
 ntop <- 20
-dataset_from_rds <- readRDS("../data/estc_df.Rds")
-ecco_dump_ids <- readRDS("../data/ecco_dump_ids.Rds")
 theme_set(theme_bw(12))
+
+dataroot <- get_dataroot()
+dataset_from_rds <- readRDS(paste0(dataroot, "data/estc_df.Rds"))
+ecco_dump_ids <- readRDS(paste0(dataroot, "data/ecco_dump_ids.Rds"))
 
 # rest_api_url <- "https://vm0175.kaj.pouta.csc.fi/ecco-search/"
 # terms_conf <- "&d=1&cp=1"

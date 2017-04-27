@@ -1,4 +1,14 @@
 
+get_dataroot <- function() {
+  is_local <- Sys.getenv('SHINY_PORT') == ""
+  
+  if (is_local) {
+    dataroot <- "../"
+  } else {
+    dataroot <- "/data/data-restricted/shiny-apps/ecco-estc/"
+  }
+  return(dataroot)
+}
 
 # Add Metadata ID field 
 add_metadata_id_field <- function(df.orig) {
