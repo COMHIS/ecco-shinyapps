@@ -1,8 +1,6 @@
 
 library(shiny)
 library(devtools)
-options(shiny.testmode = TRUE)
-
 load_all("../bibliographica")
 load_all("../estc")
 library(magrittr)
