@@ -97,7 +97,7 @@ shinyServer(function(input, output) {
                         query_line,
                         sep = " --- ")
       log_line <- paste0(log_line, "\n")
-      log_file_path <- paste0("logs/", "search_log-", Sys.Date(), ".txt")
+      log_file_path <- paste0("../output/logs/", "estc-shinyapp-search_log-", Sys.Date(), ".txt")
       log_file <- file(log_file_path, open = "at")
       cat(log_line, file = log_file, append = TRUE)
       close(log_file)
@@ -109,7 +109,7 @@ shinyServer(function(input, output) {
     query_res_df <- get_idfiltered_dataset(query_ids(), filtered_dataset_sans_ids())$place_filtered
     query_res_ids <- query_res_df$id
     query_res_ids_df <- data.frame(id = query_res_ids)
-    filename <- paste0("../data/saved_query_ids/", ids_label, ".csv")
+    filename <- paste0("../output/saved_query_ids/", ids_label, ".csv")
     write.csv(query_res_ids_df, file = filename)
     showNotification(paste0("Query saved with identifier: ", ids_label), duration = 10, type = "message")
   })

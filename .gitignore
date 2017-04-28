@@ -1,24 +1,9 @@
 .RData
 .Rhistory
 *Rcheck*
-inst/extras
-inst/extras/..Rcheck
-inst/extras/.Rhistory
-inst/extras/.RData
 *~
 */~
-vignettes/vignette.md
-vignettes/figure
 
-inst/examples/*.tex
-inst/examples/*.aux
-inst/examples/*.log
-inst/examples/data
-inst/examples/*.Rproj
-#inst/examples/output.tables
-
-inst/examples/Scotland.R
-inst/examples/tmp.R
 .Rproj.user
 *.Rproj
 
@@ -32,3 +17,4 @@ estc
 estc_enriched.Rds
 
 trend-comparison-shinyapp/testdata
+output/logs/*.log

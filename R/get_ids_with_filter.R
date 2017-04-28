@@ -7,7 +7,7 @@ get_ids_with_filter <- function(dataset, filter_value, filter_field) {
 
 
 get_data_subset_ids_csv <- function(dataset, csv_name) {
-  subset_ids <- read.csv(paste0("../data/saved_query_ids/", csv_name, ".csv"))
+  subset_ids <- read.csv(paste0("../output/saved_query_ids/", csv_name, ".csv"))
   data_subset <- dataset[dataset$id %in% subset_ids$id, ]
   return(data_subset)
 }

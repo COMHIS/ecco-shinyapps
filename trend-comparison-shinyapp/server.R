@@ -25,9 +25,6 @@ source("get_query_set_list.R")
 source("plot_functions.R")
 source("paragraph_analysis_functions.R")
 
-# dataset <- augment_original_data(readRDS("../data/estc_df.Rds"))
-# rest_api_url <- "https://vm0175.kaj.pouta.csc.fi/ecco-search/"
-# fields <- "&f=heading_index&f=heading_frontmatter&f=contents_index&f=heading_backmatter&f=heading_body&f=contents_frontmatter&f=contents_TOC&f=heading_TOC&f=contents_titlePage&f=contents_body&f=contents_backmatter"
 
 shinyServer(function(input, output) {
 
@@ -42,7 +39,8 @@ shinyServer(function(input, output) {
   })
     
   dataset <- reactive({
-    base_dataset <- augment_original_data(readRDS("../data/estc_df.Rds"))
+    dataroot <- get_dataroot()
+    base_dataset <- augment_original_data(readRDS(paste0(dataroot, "data/estc_df.Rds")))
     if (subcorpus_filter_state()) {
       base_dataset <- get_data_subset_ids_csv(base_dataset, input$subcorpus)
     }

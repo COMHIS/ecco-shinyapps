@@ -6,13 +6,8 @@ load_all("../estc")
 load_all()
 source("resultsdata_functions.R")
 
-
-basedata <- readRDS("../data/enriched_and_streamlined_data.Rds")
-
-# api1_url <- "https://vm0175.kaj.pouta.csc.fi/ecco-search/"
-# api1_conf <- "&d=1&cp=1"
-
-
+dataroot <- get_dataroot()
+basedata <- readRDS(paste0(dataroot, "data/enriched_and_streamlined_data.Rds"))
 
 
 # Define server logic required to draw a histogram
@@ -54,7 +49,7 @@ shinyServer(function(input, output) {
     query_res_df <- api2_query_results_df()
     query_res_ids <- query_res_df$id
     query_res_ids_df <- data.frame(id = query_res_ids)
-    filename <- paste0("../data/saved_query_ids/", ids_label, ".csv")
+    filename <- paste0("../output/saved_query_ids/", ids_label, ".csv")
     write.csv(query_res_ids_df, file = filename)
     showNotification(paste0("Query saved with identifier: ", ids_label), duration = 10, type = "message")
   })
