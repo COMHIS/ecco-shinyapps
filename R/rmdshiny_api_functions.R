@@ -1,5 +1,6 @@
 library(RCurl)
 library(jsonlite)
+library(httr)
 
 get_api_fields_from_input <- function(selected_fields) {
   switch(selected_fields,
@@ -165,7 +166,7 @@ api3_get_fields_from_input <- function(selected_fields) {
 }
 
 
-api3_get_rest_api_terms <- function(rest_api_url = "http://vm0542.kaj.pouta.csc.fi/",
+api3_get_rest_api_terms <- function(rest_api_url = "https://vm0542.kaj.pouta.csc.fi/ecco_octavo_api/",
                                     term,
                                     terms_conf = "&minCommonPrefix=1&maxEditDistance=1"){
   terms_url <- paste0(rest_api_url, "terms")
@@ -173,12 +174,14 @@ api3_get_rest_api_terms <- function(rest_api_url = "http://vm0542.kaj.pouta.csc.
   formatted_term <- gsub(" ", "%20", term)
   formatted_term <- paste0("%22", formatted_term, "%22")
   query_url <- paste0(terms_url, "?term=", formatted_term, terms_conf)
-  terms_result <- getURL(query_url)
+  # terms_result <- getURL(query_url)
+  # getURL can't take https for some reason
+  terms_result <- toJSON(content(httr::GET(query_url)))
   return(terms_result)
 }
 
 
-api3_get_search_results <- function(rest_api_url = "http://vm0542.kaj.pouta.csc.fi/",
+api3_get_search_results <- function(rest_api_url = "https://vm0542.kaj.pouta.csc.fi/ecco_octavo_api/",
                                     query_terms,
                                     fields,
                                     min_score = "&minScore=1") {
@@ -188,7 +191,6 @@ api3_get_search_results <- function(rest_api_url = "http://vm0542.kaj.pouta.csc.
                              " +",
                              "%28",
                              query_terms,
-                             # "public",
                              "%29",
                              "|document>",
                              "&field=ESTCID",
@@ -196,7 +198,8 @@ api3_get_search_results <- function(rest_api_url = "http://vm0542.kaj.pouta.csc.
                              "&limit=-1")
   rest_request_end <- encode_url_request(rest_request_end)
   rest_request <- paste0(rest_request_start, rest_request_end)
-  request_results <- getURL(rest_request)
+  # request_results <- getURL(rest_request)
+  request_results <- toJSON(content(httr::GET(rest_request)))
   results <- fromJSON(request_results)$results$docs
   return(results)
 }
@@ -218,7 +221,7 @@ api3_enrich_rest_query_results <- function(rest_query_results) {
 
 
 api3_get_rest_query_results <- function(search_term,
-                                        rest_api_url = "http://vm0542.kaj.pouta.csc.fi/",
+                                        rest_api_url = "https://vm0542.kaj.pouta.csc.fi/ecco_octavo_api/",
                                         terms_conf = "&minCommonPrefix=1&maxEditDistance=1",
                                         fields,
                                         min_freq = "&minScore=1") {

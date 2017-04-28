@@ -23,7 +23,7 @@ dataroot <- get_dataroot()
 dataset_from_rds <- readRDS(paste0(dataroot, "data/estc_df.Rds"))
 theme_set(theme_bw(12))
 
-rest_api_url <- "http://vm0542.kaj.pouta.csc.fi/"
+rest_api_url <- "https://vm0542.kaj.pouta.csc.fi/ecco_octavo_api/"
 terms_conf <- "&minCommonPrefix=1&maxEditDistance=1"
 
 get_idsource_fullpath <- function(idsource) {
@@ -168,7 +168,8 @@ shinyServer(function(input, output) {
   output$intro_text <- renderText({
     if (!sanity()) {
       HTML(paste0("<b>","CHANGELOG", "</b>", "</br>",
-                  "<b>","0.2.","</b>", " Converted to API v3"))
+                  "<b>","0.2.","</b>", " Converted to API v3",
+                  "<b>","0.3.","</b>", " Updated to use https"))
     }    
   })
 
