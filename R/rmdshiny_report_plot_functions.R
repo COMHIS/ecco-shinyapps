@@ -92,10 +92,10 @@ plot_titlecount_timeline <- function(df0,
   # Standard timeline
   # If place selection is applied then show both the
   # selected place and total data
-  p1 <- plot_timeline(df0, df1, field = myfield, nmin = 0, mode = "absolute",
-                      time.window = time_window) +
-    ylab("Title count (n)") + ggtitle("Total title count timeline ()") 
-  #guides(fill = "none") 
+  p1 <- plot_timeline(df0, x = "publication_decade", y = myfield, nmin = 0,
+                      mode = "absolute") +
+    ylab("Title count (n)") +
+    ggtitle("Total title count timeline ()") 
   
   if (!selected.place == "All") {
     p1 <- p1 + scale_fill_manual("Place", 
@@ -120,12 +120,11 @@ plot_paper_consumption_timeline <- function(df0, df0.allplaces, selected.place =
   # Standard timeline
   # If place selection is applied then show both the
   # selected place and total data
-  p1 <- plot_timeline(df0, df1, field = myfield, nmin = 0, mode = "absolute",
-                      time.window = time_window) +
+  p1 <- plot_timeline(df0, df1, field = myfield, nmin = 0, mode = "absolute") +
     ylab("Paper (sheets)") + ggtitle("Total paper consumption timeline ()") 
   #	guides(fill = "none")	
   
-  if (!selected.place == "All") {
+  if (!is.null(df1)) {
     p1 <- p1 + scale_fill_manual("Place", 
                                  values = c("black", "darkgray"), 
                                  labels = c(selected.place, "All"))

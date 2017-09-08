@@ -23,8 +23,8 @@ dataroot <- get_dataroot()
 dataset_from_rds <- readRDS(paste0(dataroot, "data/estc_df.Rds"))
 theme_set(theme_bw(12))
 
-rest_api_url <- "https://vm0542.kaj.pouta.csc.fi/ecco_octavo_api/"
-terms_conf <- "&minCommonPrefix=1&maxEditDistance=1"
+eccoapi_url <- get_eccoapi_url_base()
+  terms_conf <- "&minCommonPrefix=1&maxEditDistance=1"
 
 get_idsource_fullpath <- function(idsource) {
   idsource_fullpath <- paste0("../data/", idsource)
@@ -76,11 +76,11 @@ shinyServer(function(input, output) {
     if (sanity()) {
       removeNotification(id = "query_null")
       withProgress(message = 'Querying API...', value = 0.5, {
-        selected_fields <- api3_get_fields_from_input(input$search_fields)
+        selected_fields <- octavoapi_get_fields_from_input(input$search_fields)
         min_freq <- input$api_min_hits
         # this one has multiple estcids, as multiple ecco ids give same estc id
-        query_results <- api3_get_query_ids(input, rest_api_url, terms_conf, selected_fields, min_freq)
-        # summarized_query_results <- api3_sum_estcid_hits(query_results)
+        query_results <- octavoapi_get_query_ids(input, eccoapi_url, terms_conf, selected_fields, min_freq)
+        # query_results <- octavoapi_sum_estcid_hits(query_results)
         # dataframe with columns: id, freq (=ESTCID, number of api hits)
         return(query_results)
       })
@@ -99,7 +99,7 @@ shinyServer(function(input, output) {
   
   query_ids <- reactive({
     if (sanity() & query_state()) {
-      summarized_query_results <- api3_sum_estcid_hits(query_pre_ids())
+      summarized_query_results <- octavoapi_sum_estcid_hits(query_pre_ids())
       return(summarized_query_results)
     }
   })
@@ -169,7 +169,8 @@ shinyServer(function(input, output) {
     if (!sanity()) {
       HTML(paste0("<b>","CHANGELOG", "</b>", "</br>",
                   "<b>","0.2.","</b>", " Converted to API v3",
-                  "<b>","0.3.","</b>", " Updated to use https"))
+                  "<b>","0.3.","</b>", " Updated to use https",
+                  "<b>","0.4.","</b>", " Updated to use new API"))
     }    
   })
 

@@ -17,4 +17,4 @@ estc
 estc_enriched.Rds
 
 trend-comparison-shinyapp/testdata
-output/logs/*.log
+output/logs/*

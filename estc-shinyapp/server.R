@@ -25,10 +25,6 @@ dataroot <- get_dataroot()
 dataset_from_rds <- readRDS(paste0(dataroot, "data/estc_df.Rds"))
 ecco_dump_ids <- readRDS(paste0(dataroot, "data/ecco_dump_ids.Rds"))
 
-# rest_api_url <- "https://vm0175.kaj.pouta.csc.fi/ecco-search/"
-# terms_conf <- "&d=1&cp=1"
-
-
 shinyServer(function(input, output) {
   
   session_randomhash <- stri_rand_strings(1, 8)
