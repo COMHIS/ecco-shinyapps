@@ -13,7 +13,7 @@ library(shiny)
 shinyUI(fluidPage(
   
   # Application title
-  titlePanel("Not Google n-gram viewer v0.8"),
+  titlePanel("Not Google n-gram viewer v0.9"),
   
   # Sidebar with a slider input for number of bins 
   sidebarLayout(

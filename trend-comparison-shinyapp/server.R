@@ -70,7 +70,7 @@ shinyServer(function(input, output) {
     comparables <- input_comparables()
     print(input$mode)
     print(typeof(input$mode))
-    api_query_set <- get_api2_query_set(input$baseline_term, comparables, input$mode)
+    api_query_set <- octavoapi_get_query_set(input$baseline_term, comparables, input$mode)
     return(api_query_set)
     
   })

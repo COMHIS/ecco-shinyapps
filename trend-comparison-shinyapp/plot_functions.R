@@ -23,11 +23,11 @@ plot_titlecount_relative <- function(title = "placeholder",
   graphdata_df <- get_yearly_freqs_molten_df(yearly_title_frequencies_list)
 
   if (style == "smooth") {
-    geom <- geom_smooth(method = "loess", span = 0.2, se = FALSE)
+    geom <- geom_smooth(method = "loess", span = 0.2, se = FALSE, , size = 1.7)
   } else if (style == "very_smooth") {
-    geom <- stat_smooth(method = 'lm',  formula = y ~ poly(x,2), se = FALSE)
+    geom <- stat_smooth(method = 'lm',  formula = y ~ poly(x,2), se = FALSE, size = 1.7)
   } else if (style == "not_smooth") {
-    geom <- geom_line(size = 2)
+    geom <- geom_line(size = 1.7)
   } else {
     graphdata_df$value[is.na(graphdata_df$value)] <- 0
     geom <- geom_ribbon(aes(ymin=0, ymax=value, fill = variable, colour = NA), position = "stack")
@@ -46,10 +46,13 @@ plot_titlecount_relative <- function(title = "placeholder",
     scale_y_continuous(limits = c(min(graphdata_df$value, na.rm = TRUE),
                                   max(graphdata_df$value, na.rm = TRUE))) + 
     theme_linedraw() +
-    theme(axis.text.x = element_text(size = 9, angle = -90),
+    theme(text = element_text(size = 20),
+          axis.text.x = element_text(angle = -90),
           axis.title.x = element_blank(),
           legend.title = element_blank(),
-          legend.position = "bottom") +
+          legend.position = "bottom",
+          legend.text = element_text(size = 20),
+          legend.key.size = unit(4,"line")) +
     scale_colour_brewer(type = "qual", palette = plot_colour) +
     scale_fill_brewer(type = "qual", palette = plot_colour)
   if (style == "very_smooth") {

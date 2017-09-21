@@ -35,8 +35,8 @@ get_hits_relative_frequency_yearly <- function(hits_subset_yearly, hits_all_year
 
 
 get_hits_yearly_for_api_query <- function(api_query, dataset) {
-  query_results_df <- get_api2_jsearch_query_results_df(api_query)
-  query_counts <- get_api2_query_counts(query_results_df)
+  query_results_df <- octavoapi_get_jsearch_query_results_df(api_query)
+  query_counts <- octavoapi_get_query_counts(query_results_df)
   query_counts <- add_publication_year(query_counts, dataset)
   query_hits_yearly <- summarize_hits_per_year(query_counts)
   return(query_hits_yearly)
