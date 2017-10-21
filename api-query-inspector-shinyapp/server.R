@@ -14,17 +14,18 @@ basedata <- readRDS(paste0(dataroot, "data/enriched_and_streamlined_data.Rds"))
 shinyServer(function(input, output) {
 
   api2_query_sanity <- reactive({
-    api2_query_verify_sanity(input$api2_query)
+    query_verify_sanity(input$api2_query)
   })
   
   api2_query_results_df <- eventReactive(input$api_button, {
     if (api2_query_sanity()) {
-      query_url <- get_api2_query(term = input$api2_query, api_return_fields = "&field=ESTCID,totalPages")
+      query_url <- octavoapi_get_query_url(query_string = input$api2_query,
+                                           fields = list("ESTCID","totalPages"))
       print(query_url)
-      query_results_df <- get_api2_jsearch_query_results_df(query_url, column_names = c("id", "pages_ecco", "hits"))
-      query_results_df <- format_api2_jsearch_query_results(query_results_df, format_freq = FALSE)
+      query_results_df <- octavoapi_get_jsearch_query_results_df(query_url, column_names = c("id", "pages_ecco", "hits"))
+      query_results_df <- octavoapi_format_jsearch_query_results(query_results_df, format_freq = FALSE)
       print(paste0("query_results_df rows: ", nrow(query_results_df)))
-      query_counts <- get_api2_query_counts(query_results_df)
+      query_counts <- octavoapi_get_query_counts(query_results_df)
       print(paste0("query_counts length: ", nrow(query_counts)))
       resultsdata <- resultsdata_add_query_hits(basedata, query_counts)
       resultsdata <- resultsdata_add_ecco_pages(resultsdata, query_results_df)

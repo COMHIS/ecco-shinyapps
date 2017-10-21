@@ -79,6 +79,20 @@ octavoapi_get_fields_from_input <- function(selected_fields) {
 }
 
 
+octavoapi_get_query_url <- function(query_string,
+                                    fields = list("ESTCID", "totalPages")) {
+  url_base <- get_eccoapi_url_base()
+  query_url <- paste0(url_base, "search?query=")
+  fields_string <- ""
+  for (field in fields) {
+    fields_string <- paste0(fields_string, "&field=", field)
+  }
+  query_string_encoded <- encode_url_request(query_string)
+  query_url <- paste0(query_url, query_string_encoded, fields_string, "&timeout=600")
+  return(query_url)
+}
+
+
 octavoapi_get_terms <- function(api_url = "https://vm0824.kaj.pouta.csc.fi/octavo/ecco/",
                                     term,
                                     terms_conf = "&minCommonPrefix=1&maxEditDistance=1"){
@@ -256,12 +270,13 @@ octavoapi_get_query_counts <- function(query_results_df) {
 }
 
 
-# api2_query_verify_sanity <- function(api2_search_terms) {
-#   if (nchar(api2_search_terms) > 6) {
-#     return(TRUE)
-#   }
-#   return(FALSE)
-# }
+query_verify_sanity <- function(search_terms) {
+  if (nchar(search_terms) > 5) {
+    return(TRUE)
+  }
+  return(FALSE)
+}
+
 # 
 # 
 # format_api2_ids <- function(df_with_ids, id_field = "id") {
