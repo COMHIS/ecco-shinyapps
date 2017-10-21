@@ -18,6 +18,8 @@ encode_url_request <- function(request) {
   request <- gsub(">", "%3E", request)
   request <- gsub("§", "%C2%A7", request)
   request <- gsub('"', "%22", request)
+  request <- gsub('\\(', "%28", request)
+  request <- gsub('\\)', "%29", request)
   return(request)
 }
 
@@ -221,8 +223,11 @@ octavoapi_get_query_set <- function(base_term, comparable_terms, query_level) {
   comparable_query_sets <-  vector("list", length(comparable_terms))
   i <- 1
   for (comparable_term in comparable_terms) {
-    # comparable_term_quoted <- paste0('"', comparable_term, '"')
-    query_terms <- paste0(base_term, " ", comparable_term)
+    if (base_term != "") {
+      query_terms <- paste0(base_term, " AND (", comparable_term, ")")
+    } else {
+      query_terms <- comparable_term
+    }
     comparable_set <-
       list(term = comparable_term, query = octavoapi_get_termquery_string(term = query_terms, level = query_level))
     comparable_query_sets[[i]] <- comparable_set
