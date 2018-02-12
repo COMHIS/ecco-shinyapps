@@ -24,6 +24,7 @@ source("get_query_set_list.R")
 source("plot_functions.R")
 source("paragraph_analysis_functions.R")
 
+options(shiny.sanitize.errors = FALSE)
 
 shinyServer(function(input, output) {
 
