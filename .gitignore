@@ -12,9 +12,11 @@ R/estc
 estc-ecco-shinyapp/logs
 estc-ecco-shinyapp/data
 data
+cfg
 bibliographica
 estc
 estc_enriched.Rds
 
 trend-comparison-shinyapp/testdata
 output/logs/*
+output/saved_query_ids/*

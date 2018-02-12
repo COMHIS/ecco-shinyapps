@@ -2,8 +2,18 @@ library(RCurl)
 library(jsonlite)
 library(httr)
 
+
+get_eccoapi_cfg <- function() {
+  dataroot <- get_dataroot()
+  api_cfg <- jsonlite::read_json(paste0(dataroot, "cfg/cfg.json"))
+  return(api_cfg)
+}
+
+
 get_eccoapi_url_base <- function() {
-  return("https://vm0824.kaj.pouta.csc.fi/octavo/ecco/")
+  api_cfg <- get_eccoapi_cfg()
+  url_base <- paste0("https://", api_cfg$usr, ":", api_cfg$pwd, "@", api_cfg$url)
+  return(url_base)
 }
 
 
@@ -95,10 +105,12 @@ octavoapi_get_query_url <- function(query_string,
 }
 
 
-octavoapi_get_terms <- function(api_url = "https://vm0824.kaj.pouta.csc.fi/octavo/ecco/",
-                                    term,
-                                    terms_conf = "&minCommonPrefix=1&maxEditDistance=1"){
+octavoapi_get_terms <- function(
+  # api_url = "https://vm0824.kaj.pouta.csc.fi/octavo/ecco/",
+                                term,
+                                terms_conf = "&minCommonPrefix=1&maxEditDistance=1"){
   # eg. https://vm0824.kaj.pouta.csc.fi/octavo/ecco/terms?term=public
+  api_url <- get_eccoapi_url_base()
   terms_url <- paste0(api_url, "terms")
   term <- encode_url_request(sanitize_term(term))
   query_url <- paste0(terms_url, "?term=", term, terms_conf)
@@ -107,10 +119,12 @@ octavoapi_get_terms <- function(api_url = "https://vm0824.kaj.pouta.csc.fi/octav
 }
 
 
-octavoapi_get_search_results <- function(api_url = "https://vm0824.kaj.pouta.csc.fi/octavo/ecco/",
+octavoapi_get_search_results <- function(
+  # api_url = "https://vm0824.kaj.pouta.csc.fi/octavo/ecco/",
                                     query_terms,
                                     fields,
                                     min_score = "&minScore=1") {
+  api_url <- get_eccoapi_url_base()
   results_url <- paste0(api_url, "search")
   request_start <- paste0(results_url, "?query=")
   request_end <- paste0(fields,
@@ -124,7 +138,7 @@ octavoapi_get_search_results <- function(api_url = "https://vm0824.kaj.pouta.csc
                              "&limit=-1")
   request_end <- encode_url_request(request_end)
   api_request <- paste0(request_start, request_end)
-  # request_results <- getURL(api_request)
+
   request_results <- toJSON(content(httr::GET(api_request)))
   results <- fromJSON(request_results)$results$docs
   return(results)
@@ -145,10 +159,11 @@ octavoapi_enrich_rest_query_results <- function(query_results) {
 
 
 octavoapi_get_query_results <- function(term,
-                                        api_url = "https://vm0824.kaj.pouta.csc.fi/octavo/ecco/",
+                                        # api_url = "https://vm0824.kaj.pouta.csc.fi/octavo/ecco/",
                                         terms_conf = "&minCommonPrefix=1&maxEditDistance=1",
                                         fields,
                                         min_freq = "&minScore=1") {
+  api_url <- get_eccoapi_url_base()
   terms_json <- octavoapi_get_terms(api_url, term, terms_conf)
   if (validate_json(terms_json) == FALSE) {
     return(NULL) 
@@ -165,10 +180,11 @@ octavoapi_get_query_results <- function(term,
 
 
 octavoapi_get_query_ids <- function(input,
-                                    api_url = "https://vm0824.kaj.pouta.csc.fi/octavo/ecco/",
+                                    # api_url = "https://vm0824.kaj.pouta.csc.fi/octavo/ecco/",
                                     terms_conf,
                                     fields,
                                     min_freq = 1) {
+  # api_url <- get_eccoapi_url_base()
   search_term <- tolower(as.character(input$search_term))
   min_score <- paste0("&minScore=", min_freq)
   query_results <- octavoapi_get_query_results(search_term,
@@ -256,6 +272,7 @@ octavoapi_format_jsearch_query_results <- function(jsearch_query_results, format
 
 octavoapi_get_jsearch_query_results_df <- function(query_url, column_names = NA) {
   # returns df with optional column names
+  print(query_url)
   results <- jsonlite::fromJSON(query_url, flatten = TRUE)$results$docs
   results_df <- data.frame(results)
   if (!all(is.na(column_names))) {
@@ -281,22 +298,4 @@ query_verify_sanity <- function(search_terms) {
   }
   return(FALSE)
 }
-
-# 
-# 
-# format_api2_ids <- function(df_with_ids, id_field = "id") {
-#   if (id_field != "id") {
-#     df_with_ids$id <- df_with_ids[, id_field]
-#   }
-#   df_with_ids
-#   
-#   df_with_ids$id <- gsub("\\,$", "", as.character(df_with_ids$id))
-#   # Takes first character of id, removes zeroes from start of numeric part,
-#   # adds first char back again.
-#   df_with_ids$id <- apply(cbind(substr(df_with_ids$id, 1, 1),
-#                                 gsub("^[A-Z]0*", "", df_with_ids$id)),
-#                           1, function(x) {paste(x, collapse = "")})
-#   formatted_ids <- df_with_ids
-#   return(formatted_ids)
-# }
 
