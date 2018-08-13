@@ -24,7 +24,7 @@ dataset_from_rds <- readRDS(paste0(dataroot, "data/estc_df.Rds"))
 theme_set(theme_bw(12))
 
 eccoapi_url <- get_eccoapi_url_base()
-  terms_conf <- "&minCommonPrefix=1&maxEditDistance=1"
+terms_conf <- "~1&limit=20"
 
 get_idsource_fullpath <- function(idsource) {
   idsource_fullpath <- paste0("../data/", idsource)
@@ -55,7 +55,7 @@ shinyServer(function(input, output) {
     }
     
   })
-
+  
   
   sanity <- reactive({
     sanitized_term <- sanitize_term(input$search_term)
@@ -70,7 +70,7 @@ shinyServer(function(input, output) {
       return(filtered_dataset_sans_ids)
     }
   })
-
+  
   
   query_pre_ids <- eventReactive(input$submit_button, {
     if (sanity()) {
@@ -79,7 +79,8 @@ shinyServer(function(input, output) {
         selected_fields <- octavoapi_get_fields_from_input(input$search_fields)
         min_freq <- input$api_min_hits
         # this one has multiple estcids, as multiple ecco ids give same estc id
-        query_results <- octavoapi_get_query_ids(input, eccoapi_url, terms_conf, selected_fields, min_freq)
+        query_results <- octavoapi_get_query_ids(input, terms_conf, selected_fields, min_freq)
+        # eccoapi_url, 
         # query_results <- octavoapi_sum_estcid_hits(query_results)
         # dataframe with columns: id, freq (=ESTCID, number of api hits)
         return(query_results)
@@ -104,13 +105,13 @@ shinyServer(function(input, output) {
     }
   })
   
-      
+  
   filtered_dataset <- reactive({
     if (sanity() & query_state()) {
       get_idfiltered_dataset(query_ids(), filtered_dataset_sans_ids())
     }
   })
-
+  
   sanity_message <- observe({
     if (!sanity()) {
       showNotification("Please enter a valid search string. (Length > 4, no special characters.)",
@@ -167,10 +168,11 @@ shinyServer(function(input, output) {
 
   output$intro_text <- renderText({
     if (!sanity()) {
-      HTML(paste0("<b>","CHANGELOG", "</b>", "</br>",
-                  "<b>","0.2.","</b>", " Converted to API v3",
-                  "<b>","0.3.","</b>", " Updated to use https",
-                  "<b>","0.4.","</b>", " Updated to use new API"))
+      HTML(paste0("<b>","CHANGELOG:", "</b>", "</br>",
+                  "<b>","0.2","</b>", " Converted to API v3", "</br>",
+                  "<b>","0.3","</b>", " Updated to use https", "</br>",
+                  "<b>","0.4","</b>", " Updated to use new API", "</br>",
+                  "<b>","0.5","</b>", " Another API update", "</br>"))
     }    
   })
 
@@ -188,6 +190,7 @@ shinyServer(function(input, output) {
           get_query_summary_string(query_ids(), filtered_dataset()$place_filtered)
         
         input_values <- list("Search string" = input$search_term,
+                             "Fuzzy search" = input$fuzzy_search,
                              "Years" = selected_years,
                              "Publication place" = input$publication_place,
                              "Language" = input$language,

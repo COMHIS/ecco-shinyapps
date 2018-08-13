@@ -50,13 +50,13 @@ sanity_check_term_query <- function(term){
 }
 
 
-get_query_terms <- function(terms_dataframe) {
-  top50terms <- head(terms_dataframe, 50)
-  top50terms_list <- as.character(top50terms[, 1])
-  top50terms_list <- gsub("[^a-z0-9%']", "", top50terms_list)
-  top50merged <- paste0("%22", top50terms_list, "%22", collapse = "%20OR%20")
-  top50merged <- gsub(" ", "%20", top50merged)
-  return(top50merged)
+get_query_terms <- function(terms_dataframe, topn = 20) {
+  top_terms <- head(terms_dataframe, topn)
+  top_terms_list <- as.character(top_terms[, 1])
+  top_terms_list <- gsub("[^a-z0-9%']", "", top_terms_list)
+  top_merged <- paste0("%22", top_terms_list, "%22", collapse = "%20OR%20")
+  top_merged <- gsub(" ", "%20", top_merged)
+  return(top_merged)
 }
 
 
@@ -106,14 +106,17 @@ octavoapi_get_query_url <- function(query_string,
 
 
 octavoapi_get_terms <- function(
-  # api_url = "https://vm0824.kaj.pouta.csc.fi/octavo/ecco/",
-                                term,
-                                terms_conf = "&minCommonPrefix=1&maxEditDistance=1"){
+    # api_url = "https://vm0824.kaj.pouta.csc.fi/octavo/ecco/",
+    term,
+    # terms_conf = "&minCommonPrefix=1&maxEditDistance=1"
+    terms_conf = "~1&limit=20"
+    )
+  {
   # eg. https://vm0824.kaj.pouta.csc.fi/octavo/ecco/terms?term=public
   api_url <- get_eccoapi_url_base()
-  terms_url <- paste0(api_url, "terms")
+  terms_url <- paste0(api_url, "similarTerms")
   term <- encode_url_request(sanitize_term(term))
-  query_url <- paste0(terms_url, "?term=", term, terms_conf)
+  query_url <- paste0(terms_url, "?query=", term, terms_conf)
   terms_result <- toJSON(content(httr::GET(query_url)))
   return(terms_result)
 }
@@ -160,20 +163,30 @@ octavoapi_enrich_rest_query_results <- function(query_results) {
 
 octavoapi_get_query_results <- function(term,
                                         # api_url = "https://vm0824.kaj.pouta.csc.fi/octavo/ecco/",
-                                        terms_conf = "&minCommonPrefix=1&maxEditDistance=1",
+                                        terms_conf = "~1&limit=20",
                                         fields,
+                                        fuzzy = TRUE,
                                         min_freq = "&minScore=1") {
   api_url <- get_eccoapi_url_base()
-  terms_json <- octavoapi_get_terms(api_url, term, terms_conf)
+  terms_json <- octavoapi_get_terms(
+    # api_url,
+    term,
+    terms_conf)
   if (validate_json(terms_json) == FALSE) {
     return(NULL) 
   } else {
-    terms_df <- fromJSON(terms_json)$results
-    terms_top50 <- get_query_terms(terms_df)
-    query_results <- octavoapi_get_search_results(api_url,
-                                             query_terms = terms_top50,
-                                             fields,
-                                             min_score = min_freq)
+    # terms_df <- fromJSON(terms_json)$results$results
+    terms_df <- fromJSON(terms_json)$results[[2]][[2]]
+    if (fuzzy) {
+      terms_top <- get_query_terms(terms_df, topn = 20)
+    } else {
+      terms_top <- term
+    }
+    query_results <- octavoapi_get_search_results(
+      # api_url,
+      query_terms = terms_top,
+      fields,
+      min_score = min_freq)
     return(query_results)
   }
 }
@@ -185,13 +198,15 @@ octavoapi_get_query_ids <- function(input,
                                     fields,
                                     min_freq = 1) {
   # api_url <- get_eccoapi_url_base()
+  fuzzy_search <- input$fuzzy_search
   search_term <- tolower(as.character(input$search_term))
   min_score <- paste0("&minScore=", min_freq)
-  query_results <- octavoapi_get_query_results(search_term,
-                                               api_url,
-                                               terms_conf,
-                                               fields,
-                                               min_score)
+  query_results <- octavoapi_get_query_results(term = search_term,
+                                               # api_url,
+                                               terms_conf = terms_conf,
+                                               fields = fields,
+                                               fuzzy = fuzzy_search,
+                                               min_freq = min_score)
   if (is.null(query_results)) {
     return(NULL)
   }
@@ -207,6 +222,24 @@ octavoapi_sum_estcid_hits <- function(query_results) {
   return(summarised_results)
 }
 
+octavoapi_get_stats_query_string <- function(stats_query = "public",
+                                             api_url = NULL,
+                                             group_by_field = "publication_year",
+                                             query_level = "paragraph") {
+  if (is.null(api_url)) {
+    api_url <- get_eccoapi_url_base()
+  }
+  api_query_start <- "queryStats?query="
+  api_query_level_start <- paste0("<" , query_level, "§")
+  api_query_text <- stats_query
+  api_query_level_end <- paste0("§" , query_level, ">")
+  api_query_mid <- encode_url_request(paste0(api_query_level_start, api_query_text, api_query_level_end))
+  api_query_group_fields <- paste0("&field=", group_by_field)
+  api_params <- "&maxDocs=-1"
+  api_query <- paste0(api_url, api_query_start, api_query_mid, api_query_group_fields, api_params)
+  return(api_query)
+  
+}
 
 octavoapi_get_termquery_string <- function(term = "religion",
                                            api_url = NULL,
@@ -215,7 +248,6 @@ octavoapi_get_termquery_string <- function(term = "religion",
   if (is.null(api_url)) {
     api_url <- get_eccoapi_url_base()
   }
-  
   api_query_start <- "search?query="
   api_query_level_start <- paste0("<" , level, "§")
   api_query_text <- term
@@ -230,12 +262,17 @@ octavoapi_get_termquery_string <- function(term = "religion",
 octavoapi_get_query_set <- function(base_term, comparable_terms, query_level) {
   if (base_term == "") {
     base_set <- list(term = "", query = NA)
-    base_q <- ""
+    # base_q <- ""
   } else {
     # base_q <- paste0('"', base_term, '"')
-    base_set <- list(term = base_term, query = octavoapi_get_termquery_string(term = base_term, level = query_level))
+    # base_set <- list(term = base_term, query = octavoapi_get_termquery_string(term = base_term, level = query_level))
+    base_set <- list(
+      term = base_term,
+      query = octavoapi_get_stats_query_string(stats_query = base_term,
+                                               query_level = query_level,
+                                               group_by_field = "publication_year")
+      )
   }
-  
   comparable_query_sets <-  vector("list", length(comparable_terms))
   i <- 1
   for (comparable_term in comparable_terms) {
@@ -244,8 +281,14 @@ octavoapi_get_query_set <- function(base_term, comparable_terms, query_level) {
     } else {
       query_terms <- comparable_term
     }
-    comparable_set <-
-      list(term = comparable_term, query = octavoapi_get_termquery_string(term = query_terms, level = query_level))
+    # comparable_set <-
+    #   list(term = comparable_term, query = octavoapi_get_termquery_string(term = query_terms, level = query_level))
+    comparable_set <- list(
+      term = comparable_term,
+      query = octavoapi_get_stats_query_string(stats_query = query_terms,
+                                               query_level = query_level,
+                                               group_by_field = "publication_year")
+      )
     comparable_query_sets[[i]] <- comparable_set
     i <- i + 1
   }
@@ -280,6 +323,19 @@ octavoapi_get_jsearch_query_results_df <- function(query_url, column_names = NA)
   }
   return(results_df)
 }
+
+
+octavoapi_get_stats_jsearch_query_results_df <- function(query_url, column_names = NA) {
+  # returns df with optional column names
+  print(query_url)
+  results <- jsonlite::fromJSON(query_url, flatten = TRUE)$results$grouped
+  results_df <- data.frame(results)
+  if (!all(is.na(column_names))) {
+    names(results_df) <- column_names
+  }
+  return(results_df)
+}
+
 
 
 octavoapi_get_query_counts <- function(query_results_df) {

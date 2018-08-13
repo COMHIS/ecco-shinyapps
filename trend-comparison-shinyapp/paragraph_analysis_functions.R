@@ -34,11 +34,19 @@ get_hits_relative_frequency_yearly <- function(hits_subset_yearly, hits_all_year
 }
 
 
-get_hits_yearly_for_api_query <- function(api_query, dataset) {
-  query_results_df <- octavoapi_get_jsearch_query_results_df(api_query)
-  query_counts <- octavoapi_get_query_counts(query_results_df)
-  query_counts <- add_publication_year(query_counts, dataset)
-  query_hits_yearly <- summarize_hits_per_year(query_counts)
+get_hits_yearly_for_api_query <- function(api_query, years = list(1705, 1799)) {
+  # query_results_df <- octavoapi_get_jsearch_query_results_df(api_query)
+  query_results_df <- octavoapi_get_stats_jsearch_query_results_df(api_query)
+  # query_counts <- octavoapi_get_query_counts(query_results_df)
+  # query_counts <- add_publication_year(query_counts, dataset)
+  yearly_hits_summary <- query_results_df[, c("fields.publication_year", "stats.docFreq")]
+  names(yearly_hits_summary) <- c("year", "hits")
+  years_range <- years[[1]]:years[[2]]
+  query_hits_yearly <- data.frame(year = years_range, hits = rep(0, length(years_range)))
+  query_hits_yearly$hits <- yearly_hits_summary[match(query_hits_yearly$year, 
+                                                yearly_hits_summary$year),
+                                               "hits"]
+  # query_hits_yearly <- years_df
   return(query_hits_yearly)
 }
 
@@ -85,14 +93,18 @@ get_yearly_paragraph_frequencies_list <- function(blank_total,
   print("querying api for base term")
   if (base_set$term == "" && subcorpus_filter == TRUE) {
     base_query_hits_yearly <- get_total_ecco_titles_yearly(dataset, years = list(1705, 1799))
+    print("base term blank, subcorpus filter applied")
   } else if (base_set$term == "") {
+    print("base term blank")
     # base_query_hits_yearly <- readRDS("./ecco_titles_yearly.Rds")
     base_query_hits_yearly <- switch(blank_total,
                                      titles = readRDS("./ecco_titles_yearly.Rds"),
                                      paragraphs = readRDS("./ecco_total_paragraphs.Rds"),
                                      words = readRDS("./ecco_total_tokens.Rds"))
   } else {
-    base_query_hits_yearly <- get_hits_yearly_for_api_query(base_set$query, dataset)
+    base_query_hits_yearly <- get_hits_yearly_for_api_query(base_set$query,
+                                                            # dataset,
+                                                            years = list(1705, 1799))
   }
   
   comparable_sets <- paragraph_query_set$comparable_query_sets
@@ -102,7 +114,8 @@ get_yearly_paragraph_frequencies_list <- function(blank_total,
   for (query_set in comparable_sets) {
     print(paste0("querying api for comparable term: ", query_set$term))
     comparable_hits_yearly <-
-      get_hits_yearly_for_api_query(query_set$query, dataset)
+      get_hits_yearly_for_api_query(query_set$query,
+                                    years = list(1705, 1799))
     comparable_yearly_relative_freq <-
       get_hits_relative_frequency_yearly(comparable_hits_yearly, 
                                          base_query_hits_yearly)

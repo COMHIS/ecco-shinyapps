@@ -12,7 +12,7 @@ shinyUI(fluidPage(
   # tags$head(tags$link(rel = "icon", type = "image/png", href = "www/favicon48.png")),
   includeCSS("styles.css"),  
   # Application title
-  titlePanel("ECCO Explorer v0.4"),
+  titlePanel("ECCO Explorer"),
   
   # Sidebar with a slider input for number of bins
   sidebarLayout(
@@ -30,6 +30,9 @@ shinyUI(fluidPage(
                                  "Backmatter" = "contents_headings_backmatter"),
                   selected = "contents_headings_all"
                    ),
+      checkboxInput("fuzzy_search",
+                    "Fuzzy search",
+                    value = TRUE),
       sliderInput("api_min_hits",
                   "Min API hits:",
                   min = 1,

@@ -68,12 +68,13 @@ shinyServer(function(input, output) {
   })
 
   api_query_set <- reactive({
+    # all the terms to be searched for
     comparables <- input_comparables()
+    # paragraph or document level query:
     print(input$mode)
-    print(typeof(input$mode))
+    # print(typeof(input$mode))
     api_query_set <- octavoapi_get_query_set(input$baseline_term, comparables, input$mode)
     return(api_query_set)
-    
   })
 
   comparable_sets_list <- reactive({
